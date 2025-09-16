@@ -55,6 +55,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     if args.len() == 2 {
         let source_code_filename = args.into_iter().nth(1).unwrap();
+        if !source_code_filename.ends_with(".rlox") {
+            eprintln!("Error: Invalid file extension. Expected .rlox");
+            return Ok(());
+        }
+
         println!("Source code filename: {}", source_code_filename);
 
         let contents = match get_source_code(source_code_filename.as_str()) {
