@@ -9,6 +9,13 @@ fn get_source_code(filename: &str) -> Result<String, io::Error> {
     Ok(contents)
 }
 
+fn run_source_code(source_code: &str) -> Result<(), io::Error> {
+    println!("Running source code:");
+    println!("{}", source_code);
+
+    Ok(())
+}
+
 struct Repl {}
 
 impl Repl {
@@ -30,7 +37,10 @@ impl Repl {
                 break;
             }
 
-            println!("Source code:\n{}", input);
+            match run_source_code(input) {
+                Ok(_) => println!("Source code executed successfully"),
+                Err(e) => eprintln!("Error executing source code: {}", e),
+            }
         }
     }
 }
@@ -60,7 +70,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             }
         };
 
-        println!("Source code:\n{}", contents);
+        match run_source_code(contents.as_str()) {
+            Ok(_) => println!("Source code executed successfully"),
+            Err(e) => eprintln!("Error executing source code: {}", e),
+        }
+
         return Ok(());
     }
 
