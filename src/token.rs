@@ -1,3 +1,4 @@
+use core::fmt;
 use std::{any::Any, fmt::Display};
 
 pub enum TokenType {
@@ -117,8 +118,8 @@ impl Token {
     }
 }
 
-impl ToString for Token {
-    fn to_string(&self) -> String {
-        format!("{} {} {:?}", self.token_type, self.lexeme, self.literal)
+impl Display for Token {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{} {} {:?}", self.token_type, self.lexeme, self.literal)
     }
 }
