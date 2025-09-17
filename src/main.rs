@@ -56,7 +56,5 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         Err(e) => eprintln!("Error executing source code: {}", e),
     }
 
-    return Ok(());
-
     Ok(())
 }
