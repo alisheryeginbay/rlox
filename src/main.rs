@@ -22,38 +22,39 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let rlox = rlox::Rlox::new();
 
-    if args.len() == 2 {
-        let source_code_filename = args.into_iter().nth(1).unwrap();
-        if !source_code_filename.ends_with(".rlox") {
-            eprintln!("Error: Invalid file extension. Expected .rlox");
-            return Ok(());
-        }
-
-        println!("Source code filename: {}", source_code_filename);
-
-        let contents = match get_source_code(source_code_filename.as_str()) {
-            Ok(v) => v,
-            Err(e) => {
-                if e.kind() == std::io::ErrorKind::NotFound {
-                    eprintln!("File {} not found", source_code_filename.clone());
-                    return Ok(());
-                } else {
-                    eprintln!("Error reading file: {}", e);
-                    return Err(e.into());
-                }
-            }
-        };
-
-        match rlox.run(contents.as_str()) {
-            Ok(_) => println!("Source code executed successfully"),
-            Err(e) => eprintln!("Error executing source code: {}", e),
-        }
-
+    if args.len() == 1 {
+        let repl = Repl::new(rlox);
+        repl.run();
         return Ok(());
     }
 
-    let repl = Repl::new(rlox);
-    repl.run();
+    let source_code_filename = args.into_iter().nth(1).unwrap();
+    if !source_code_filename.ends_with(".rlox") {
+        eprintln!("Error: Invalid file extension. Expected .rlox");
+        return Ok(());
+    }
+
+    println!("Source code filename: {}", source_code_filename);
+
+    let contents = match get_source_code(source_code_filename.as_str()) {
+        Ok(v) => v,
+        Err(e) => {
+            if e.kind() == std::io::ErrorKind::NotFound {
+                eprintln!("File {} not found", source_code_filename.clone());
+                return Ok(());
+            } else {
+                eprintln!("Error reading file: {}", e);
+                return Err(e.into());
+            }
+        }
+    };
+
+    match rlox.run(contents.as_str()) {
+        Ok(_) => println!("Source code executed successfully"),
+        Err(e) => eprintln!("Error executing source code: {}", e),
+    }
+
+    return Ok(());
 
     Ok(())
 }
