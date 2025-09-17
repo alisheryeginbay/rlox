@@ -1,5 +1,7 @@
 use std::io::{Write, stdin, stdout};
 
+use crate::scanner::Scanner;
+
 pub struct Rlox;
 
 impl Rlox {
@@ -8,8 +10,11 @@ impl Rlox {
     }
 
     pub fn run(&self, source: &str) -> Result<(), Box<dyn std::error::Error>> {
-        println!("Running source code:");
-        println!("{}", source);
+        let scanner = Scanner::new(source.to_string());
+        let tokens = scanner.scan_tokens();
+        for token in tokens {
+            println!("{}", token);
+        }
         Ok(())
     }
 }

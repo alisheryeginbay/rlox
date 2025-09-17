@@ -7,6 +7,7 @@ use std::{
 use crate::rlox::Repl;
 
 mod rlox;
+mod scanner;
 mod token;
 
 fn get_source_code(filename: &str) -> Result<String, io::Error> {
