@@ -5,7 +5,9 @@ use std::{
 };
 
 use crate::rlox::Repl;
+
 mod rlox;
+mod token;
 
 fn get_source_code(filename: &str) -> Result<String, io::Error> {
     let contents = fs::read_to_string(filename)?;
