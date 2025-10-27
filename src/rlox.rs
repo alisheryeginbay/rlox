@@ -10,12 +10,24 @@ impl Rlox {
     }
 
     pub fn run(&self, source: &str) -> Result<(), Box<dyn std::error::Error>> {
-        let scanner = Scanner::new(source.to_string());
-        let tokens = scanner.scan_tokens();
-        for token in tokens {
-            println!("{}", token);
+        let mut scanner = Scanner::new(source.to_string());
+        match scanner.scan_tokens() {
+            Ok(tokens) => {
+                println!("Successfully scanned source code");
+                for token in tokens {
+                    println!("{}", token);
+                }
+                return Ok(());
+            }
+            Err(errors) => {
+                println!("Failed to scan source code");
+                for error in errors {
+                    println!("[{}] {}", error.line, error.message);
+                }
+
+                return Err("Scanning failed".into());
+            }
         }
-        Ok(())
     }
 }
 

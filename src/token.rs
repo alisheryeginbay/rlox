@@ -1,6 +1,7 @@
 use core::fmt;
 use std::{any::Any, fmt::Display};
 
+#[derive(Clone)]
 pub enum TokenType {
     LeftParen,
     RightParen,
@@ -100,15 +101,21 @@ impl Display for TokenType {
     }
 }
 
+#[derive(Clone)]
 pub struct Token {
     token_type: TokenType,
-    lexeme: String,
-    literal: Box<dyn Any>,
+    lexeme: Option<String>,
+    literal: Option<String>,
     line: u32,
 }
 
 impl Token {
-    pub fn new(token_type: TokenType, lexeme: String, literal: Box<dyn Any>, line: u32) -> Self {
+    pub fn new(
+        token_type: TokenType,
+        lexeme: Option<String>,
+        literal: Option<String>,
+        line: usize,
+    ) -> Self {
         Token {
             token_type,
             lexeme,
