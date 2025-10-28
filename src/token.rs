@@ -106,7 +106,7 @@ pub struct Token {
     token_type: TokenType,
     lexeme: Option<String>,
     literal: Option<String>,
-    line: u32,
+    line: usize,
 }
 
 impl Token {
