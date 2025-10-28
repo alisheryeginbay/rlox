@@ -40,8 +40,34 @@ impl Scanner {
         self.tokens.push(token);
     }
 
+    fn advance(&mut self) -> char {
+        let char = self.source[self.current];
+        self.current += 1;
+        return char;
+    }
+
     fn is_at_end(&self) -> bool {
         self.current >= self.source.len()
+    }
+
+    fn peek(&mut self) -> char {
+        if self.is_at_end() {
+            return '\0';
+        }
+        return self.source[self.current];
+    }
+
+    fn consume_if(&mut self, expected: char) -> bool {
+        if self.is_at_end() {
+            return false;
+        }
+
+        if self.peek() != expected {
+            return false;
+        }
+
+        self.advance();
+        return true;
     }
 
     fn scan_token(&mut self) {
