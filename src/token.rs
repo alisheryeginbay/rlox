@@ -1,5 +1,4 @@
-use core::fmt;
-use std::{any::Any, fmt::Display};
+use std::fmt::{self, Display};
 
 #[derive(Clone)]
 pub enum TokenType {
@@ -127,6 +126,13 @@ impl Token {
 
 impl Display for Token {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{} {} {:?}", self.token_type, self.lexeme, self.literal)
+        let lexeme_str = self.lexeme.as_deref().unwrap_or("");
+        let literal_str = self.literal.as_deref().unwrap_or("null");
+
+        write!(
+            f,
+            "{} {} {}, line: {}",
+            self.token_type, lexeme_str, literal_str, self.line
+        )
     }
 }
