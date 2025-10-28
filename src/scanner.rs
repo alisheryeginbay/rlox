@@ -1,5 +1,3 @@
-use std::vec;
-
 use crate::token::{Token, TokenType};
 
 pub struct Scanner {
