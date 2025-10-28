@@ -36,8 +36,8 @@ impl Scanner {
         })
     }
 
-    fn add_token(&mut self, token_type: TokenType) {
-        let token = Token::new(token_type, None, None, self.line);
+    fn add_token(&mut self, token_type: TokenType, literal: Option<String>) {
+        let token = Token::new(token_type, None, literal, self.line);
 
         self.tokens.push(token);
     }
@@ -51,16 +51,16 @@ impl Scanner {
         self.current += 1;
 
         match char {
-            '(' => self.add_token(TokenType::LeftParen),
-            ')' => self.add_token(TokenType::RightParen),
-            '{' => self.add_token(TokenType::LeftBrace),
-            '}' => self.add_token(TokenType::RightBrace),
-            ',' => self.add_token(TokenType::Comma),
-            '.' => self.add_token(TokenType::Dot),
-            '-' => self.add_token(TokenType::Minus),
-            '+' => self.add_token(TokenType::Plus),
-            ';' => self.add_token(TokenType::Semicolon),
-            '*' => self.add_token(TokenType::Star),
+            '(' => self.add_token(TokenType::LeftParen, None),
+            ')' => self.add_token(TokenType::RightParen, None),
+            '{' => self.add_token(TokenType::LeftBrace, None),
+            '}' => self.add_token(TokenType::RightBrace, None),
+            ',' => self.add_token(TokenType::Comma, None),
+            '.' => self.add_token(TokenType::Dot, None),
+            '-' => self.add_token(TokenType::Minus, None),
+            '+' => self.add_token(TokenType::Plus, None),
+            ';' => self.add_token(TokenType::Semicolon, None),
+            '*' => self.add_token(TokenType::Star, None),
             _ => self.error(self.line, &format!("Unexpected character: {}", char)),
         }
     }
