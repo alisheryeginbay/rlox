@@ -70,6 +70,27 @@ impl Scanner {
         return true;
     }
 
+    // TODO: add escape symbosl support
+    fn string(&mut self) {
+        while self.peek() != '"' && !self.is_at_end() {
+            if self.peek() == '\n' {
+                self.line += 1;
+            }
+
+            self.advance();
+        }
+
+        if self.is_at_end() {
+            self.error(self.line, "Unterminated string");
+            return;
+        }
+
+        self.advance();
+
+        let value = self.source[self.start..self.current].to_vec();
+        self.add_token(TokenType::String, Some(value.iter().collect()));
+    }
+
     fn scan_token(&mut self) {
         let char = self.advance();
 
@@ -131,6 +152,8 @@ impl Scanner {
             '\n' => {
                 self.line += 1;
             }
+
+            '"' => self.string(),
 
             _ => self.error(self.line, &format!("Unexpected character: {}", char)),
         }
