@@ -84,6 +84,54 @@ impl Scanner {
             '+' => self.add_token(TokenType::Plus, None),
             ';' => self.add_token(TokenType::Semicolon, None),
             '*' => self.add_token(TokenType::Star, None),
+
+            '!' => {
+                if self.consume_if('=') {
+                    self.add_token(TokenType::BangEqual, None);
+                } else {
+                    self.add_token(TokenType::Bang, None);
+                }
+            }
+            '=' => {
+                if self.consume_if('=') {
+                    self.add_token(TokenType::EqualEqual, None);
+                } else {
+                    self.add_token(TokenType::Equal, None);
+                }
+            }
+            '<' => {
+                if self.consume_if('=') {
+                    self.add_token(TokenType::LessEqual, None);
+                } else {
+                    self.add_token(TokenType::Less, None);
+                }
+            }
+            '>' => {
+                if self.consume_if('=') {
+                    self.add_token(TokenType::GreaterEqual, None);
+                } else {
+                    self.add_token(TokenType::Greater, None);
+                }
+            }
+
+            '/' => {
+                if self.consume_if('/') {
+                    while self.peek() != '\n' && !self.is_at_end() {
+                        self.advance();
+                    }
+                } else {
+                    self.add_token(TokenType::Slash, None);
+                }
+            }
+
+            ' ' | '\r' | '\t' => {
+                // Ignoring whitespace
+            }
+
+            '\n' => {
+                self.line += 1;
+            }
+
             _ => self.error(self.line, &format!("Unexpected character: {}", char)),
         }
     }
