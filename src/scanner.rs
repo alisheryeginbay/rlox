@@ -1,4 +1,29 @@
+use std::{collections::HashMap, sync::LazyLock};
+
 use crate::token::{Literal, Token, TokenType};
+
+static KEYWORDS: LazyLock<HashMap<&'static str, TokenType>> = LazyLock::new(|| {
+    let mut keywords: HashMap<&str, TokenType> = HashMap::new();
+
+    keywords.insert("and", TokenType::And);
+    keywords.insert("class", TokenType::Class);
+    keywords.insert("else", TokenType::Else);
+    keywords.insert("false", TokenType::False);
+    keywords.insert("fn", TokenType::Fn);
+    keywords.insert("for", TokenType::For);
+    keywords.insert("if", TokenType::If);
+    keywords.insert("nil", TokenType::Nil);
+    keywords.insert("or", TokenType::Or);
+    keywords.insert("print", TokenType::Print);
+    keywords.insert("return", TokenType::Return);
+    keywords.insert("super", TokenType::Super);
+    keywords.insert("this", TokenType::This);
+    keywords.insert("true", TokenType::True);
+    keywords.insert("var", TokenType::Var);
+    keywords.insert("while", TokenType::While);
+
+    keywords
+});
 
 pub struct Scanner {
     source: Vec<char>,
@@ -129,6 +154,27 @@ impl Scanner {
         self.add_token(TokenType::Number, Some(literal));
     }
 
+    fn identifier(&mut self) {
+        while self.peek().is_ascii_alphanumeric() || self.peek() == '_' {
+            self.advance();
+        }
+
+        let text: String = self.source[self.start..self.current]
+            .to_vec()
+            .iter()
+            .collect();
+
+        match KEYWORDS.get(text.as_str()) {
+            Some(token_type) => {
+                self.add_token(token_type.clone(), None);
+            }
+            None => {
+                let literal = Literal::String(text);
+                self.add_token(TokenType::Identifier, Some(literal));
+            }
+        }
+    }
+
     fn scan_token(&mut self) {
         let char = self.advance();
 
@@ -194,6 +240,8 @@ impl Scanner {
             '"' => self.string(),
 
             '0'..='9' => self.number(),
+
+            c if c.is_ascii_alphabetic() => self.identifier(),
 
             _ => self.error(self.line, &format!("Unexpected character: {}", char)),
         }
