@@ -1,4 +1,4 @@
-use crate::token::{Token, TokenType};
+use crate::token::{Literal, Token, TokenType};
 
 pub struct Scanner {
     source: Vec<char>,
@@ -34,7 +34,7 @@ impl Scanner {
         })
     }
 
-    fn add_token(&mut self, token_type: TokenType, literal: Option<String>) {
+    fn add_token(&mut self, token_type: TokenType, literal: Option<Literal>) {
         let token = Token::new(token_type, None, literal, self.line);
 
         self.tokens.push(token);
@@ -94,8 +94,14 @@ impl Scanner {
 
         self.advance();
 
-        let value = self.source[self.start..self.current].to_vec();
-        self.add_token(TokenType::String, Some(value.iter().collect()));
+        let value = self.source[self.start..self.current]
+            .to_vec()
+            .iter()
+            .collect();
+
+        let literal = Literal::String(value);
+
+        self.add_token(TokenType::String, Some(literal));
     }
 
     fn number(&mut self) {
@@ -111,12 +117,16 @@ impl Scanner {
             }
         }
 
-        let value = self.source[self.start..self.current]
+        let value: String = self.source[self.start..self.current]
             .to_vec()
             .iter()
             .collect();
 
-        self.add_token(TokenType::Number, Some(value));
+        let parsed_value: f64 = value.parse().unwrap();
+
+        let literal = Literal::Number(parsed_value);
+
+        self.add_token(TokenType::Number, Some(literal));
     }
 
     fn scan_token(&mut self) {

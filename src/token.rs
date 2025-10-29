@@ -1,6 +1,25 @@
 use std::fmt::{self, Display};
 
 #[derive(Clone)]
+pub enum Literal {
+    String(String),
+    Number(f64),
+    Boolean(bool),
+    Nil,
+}
+
+impl Display for Literal {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            Literal::String(s) => write!(f, "{}", s),
+            Literal::Number(n) => write!(f, "{}", n),
+            Literal::Boolean(b) => write!(f, "{}", b),
+            Literal::Nil => write!(f, "nil"),
+        }
+    }
+}
+
+#[derive(Clone)]
 pub enum TokenType {
     LeftParen,
     RightParen,
@@ -104,7 +123,7 @@ impl Display for TokenType {
 pub struct Token {
     token_type: TokenType,
     lexeme: Option<String>,
-    literal: Option<String>,
+    literal: Option<Literal>,
     line: usize,
 }
 
@@ -112,7 +131,7 @@ impl Token {
     pub fn new(
         token_type: TokenType,
         lexeme: Option<String>,
-        literal: Option<String>,
+        literal: Option<Literal>,
         line: usize,
     ) -> Self {
         Token {
@@ -127,7 +146,11 @@ impl Token {
 impl Display for Token {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let lexeme_str = self.lexeme.as_deref().unwrap_or("");
-        let literal_str = self.literal.as_deref().unwrap_or("null");
+        let literal_str = self
+            .literal
+            .as_ref()
+            .map(|l| l.to_string())
+            .unwrap_or_else(|| "null".to_string());
 
         write!(
             f,
