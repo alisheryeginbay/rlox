@@ -224,6 +224,22 @@ impl Scanner {
                     while self.peek() != '\n' && !self.is_at_end() {
                         self.advance();
                     }
+                } else if self.consume_if('*') {
+                    while !self.is_at_end() && !(self.peek() == '*' && self.peek_next() == '/') {
+                        if self.peek() == '\n' {
+                            self.line += 1;
+                        }
+
+                        self.advance();
+                    }
+
+                    if self.is_at_end() {
+                        self.error(self.line, "Unterminated block comment");
+                        return;
+                    }
+
+                    self.advance();
+                    self.advance();
                 } else {
                     self.add_token(TokenType::Slash, None);
                 }
