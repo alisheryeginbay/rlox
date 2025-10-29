@@ -57,6 +57,13 @@ impl Scanner {
         return self.source[self.current];
     }
 
+    fn peek_next(&self) -> char {
+        if self.current + 1 >= self.source.len() {
+            return '\0';
+        }
+        return self.source[self.current + 1];
+    }
+
     fn consume_if(&mut self, expected: char) -> bool {
         if self.is_at_end() {
             return false;
@@ -89,6 +96,27 @@ impl Scanner {
 
         let value = self.source[self.start..self.current].to_vec();
         self.add_token(TokenType::String, Some(value.iter().collect()));
+    }
+
+    fn number(&mut self) {
+        while self.peek().is_numeric() && !self.is_at_end() {
+            self.advance();
+        }
+
+        if self.peek() == '.' && self.peek_next().is_numeric() {
+            self.advance();
+
+            while self.peek().is_numeric() {
+                self.advance();
+            }
+        }
+
+        let value = self.source[self.start..self.current]
+            .to_vec()
+            .iter()
+            .collect();
+
+        self.add_token(TokenType::Number, Some(value));
     }
 
     fn scan_token(&mut self) {
@@ -154,6 +182,8 @@ impl Scanner {
             }
 
             '"' => self.string(),
+
+            '0'..='9' => self.number(),
 
             _ => self.error(self.line, &format!("Unexpected character: {}", char)),
         }
