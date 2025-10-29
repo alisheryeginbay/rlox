@@ -8,13 +8,8 @@ var andd and varandvar
 varand
 
 /*
-asdasd
+int foo() {
+    /* This is a comment */
+    return 42;
+}
 */
-*/
-
-
-/**
- * asd
- * /*
- * asd*/
- */

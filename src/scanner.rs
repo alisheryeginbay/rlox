@@ -175,6 +175,37 @@ impl Scanner {
         }
     }
 
+    fn block_comment(&mut self) {
+        let mut depth = 1;
+
+        while !self.is_at_end() && depth != 0 {
+            if self.peek() == '\n' {
+                self.line += 1;
+            }
+
+            if self.peek() == '/' && self.peek_next() == '*' {
+                depth += 1;
+                self.advance();
+                self.advance();
+                continue;
+            }
+
+            if self.peek() == '*' && self.peek_next() == '/' {
+                depth -= 1;
+                self.advance();
+                self.advance();
+                continue;
+            }
+
+            self.advance();
+        }
+
+        if depth != 0 {
+            self.error(self.line, "Unterminated block comment");
+            return;
+        }
+    }
+
     fn scan_token(&mut self) {
         let char = self.advance();
 
@@ -225,21 +256,7 @@ impl Scanner {
                         self.advance();
                     }
                 } else if self.consume_if('*') {
-                    while !self.is_at_end() && !(self.peek() == '*' && self.peek_next() == '/') {
-                        if self.peek() == '\n' {
-                            self.line += 1;
-                        }
-
-                        self.advance();
-                    }
-
-                    if self.is_at_end() {
-                        self.error(self.line, "Unterminated block comment");
-                        return;
-                    }
-
-                    self.advance();
-                    self.advance();
+                    self.block_comment();
                 } else {
                     self.add_token(TokenType::Slash, None);
                 }
