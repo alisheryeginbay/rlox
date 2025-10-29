@@ -50,7 +50,7 @@ impl Scanner {
         self.current >= self.source.len()
     }
 
-    fn peek(&mut self) -> char {
+    fn peek(&self) -> char {
         if self.is_at_end() {
             return '\0';
         }
