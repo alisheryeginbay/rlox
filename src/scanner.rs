@@ -290,6 +290,8 @@ impl Scanner {
             return Err(self.errors.clone());
         }
 
+        self.add_token(TokenType::EOF, None);
+
         return Ok(self.tokens.clone());
     }
 }
