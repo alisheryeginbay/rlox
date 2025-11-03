@@ -3,13 +3,16 @@ use std::fs::File;
 use std::io::Write;
 
 fn main() {
-    let mut descriptions = HashMap::new();
-    descriptions.insert("Binary", "left: Rc<Expr>, operator: Token, right: Rc<Expr>");
-    descriptions.insert("Grouping", "expression: Rc<Expr>");
-    descriptions.insert("Literal", "value: Literal");
-    descriptions.insert("Unary", "operator: Token, right: Rc<Expr>");
+    let mut expressions = HashMap::new();
+    expressions.insert(
+        "Binary",
+        "left: Box<Expr>, operator: Token, right: Box<Expr>",
+    );
+    expressions.insert("Grouping", "expression: Box<Expr>");
+    expressions.insert("Literal", "value: Literal");
+    expressions.insert("Unary", "operator: Token, right: Box<Expr>");
 
-    match define_ast("Expr", descriptions) {
+    match define_ast("Expr", expressions) {
         Ok(()) => {
             println!("Generated Expr enum");
         }
@@ -41,7 +44,7 @@ fn define_type(
     Ok(())
 }
 
-fn define_ast(base_name: &str, descriptions: HashMap<&str, &str>) -> Result<(), std::io::Error> {
+fn define_ast(base_name: &str, expressions: HashMap<&str, &str>) -> Result<(), std::io::Error> {
     let output_path = format!("src/{}.rs", base_name);
     let mut file = File::create(output_path)?;
 
@@ -49,17 +52,15 @@ fn define_ast(base_name: &str, descriptions: HashMap<&str, &str>) -> Result<(), 
         writeln!(file, "use crate::{}::*;", import)?;
     }
 
-    writeln!(file, "use std::rc::Rc;")?;
-
     writeln!(file)?;
 
     writeln!(file, "pub enum {} {{", base_name)?;
 
-    for (name, description) in descriptions {
+    for (name, description) in expressions.iter() {
         define_type(&file, name, description)?;
     }
 
-    writeln!(file, "}}")?;
+    writeln!(file, "}}\n")?;
 
     Ok(())
 }
