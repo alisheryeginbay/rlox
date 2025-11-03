@@ -122,7 +122,7 @@ impl Display for TokenType {
 #[derive(Clone)]
 pub struct Token {
     token_type: TokenType,
-    lexeme: Option<String>,
+    pub lexeme: String,
     literal: Option<Literal>,
     line: usize,
 }
@@ -130,7 +130,7 @@ pub struct Token {
 impl Token {
     pub fn new(
         token_type: TokenType,
-        lexeme: Option<String>,
+        lexeme: String,
         literal: Option<Literal>,
         line: usize,
     ) -> Self {
@@ -145,7 +145,6 @@ impl Token {
 
 impl Display for Token {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let lexeme_str = self.lexeme.as_deref().unwrap_or("");
         let literal_str = self
             .literal
             .as_ref()
@@ -155,7 +154,7 @@ impl Display for Token {
         write!(
             f,
             "{} {} {}, line: {}",
-            self.token_type, lexeme_str, literal_str, self.line
+            self.token_type, self.lexeme, literal_str, self.line
         )
     }
 }
