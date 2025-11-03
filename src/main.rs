@@ -6,6 +6,7 @@ use std::{
 
 use crate::rlox::Repl;
 
+mod ast_printer;
 mod expr;
 mod rlox;
 mod scanner;
