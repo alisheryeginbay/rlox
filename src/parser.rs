@@ -142,7 +142,7 @@ impl Parser {
 
         if self.matches(vec![TokenType::LeftParen]) {
             let expr = self.expression();
-            self.consume(TokenType::RightBrace);
+            self.consume(TokenType::RightParen);
             return PrimaryExprValue::Grouping(expr);
         }
 
