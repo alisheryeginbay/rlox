@@ -151,13 +151,11 @@ impl Parser {
 
     fn consume(&mut self, token_type: TokenType) {
         if self.current >= self.tokens.len() {
-            eprintln!("Beyond tokens' length");
-            return ();
+            panic!("Beyond tokens' length");
         }
 
         if self.tokens[self.current].token_type != token_type {
-            eprintln!("Expected {} after expression.", token_type);
-            return ();
+            panic!("Expected {} after expression.", token_type);
         }
 
         self.current += 1;
