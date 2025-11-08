@@ -27,7 +27,7 @@ impl Parser {
         token.token_type == TokenType::EOF
     }
 
-    fn matches(&mut self, tokens: Vec<TokenType>) -> bool {
+    fn matches(&mut self, tokens: &[TokenType]) -> bool {
         if self.is_at_end() {
             return false;
         }
@@ -48,7 +48,7 @@ impl Parser {
         // a > >= < <= b
         let mut expr = self.comparison();
 
-        while self.matches(vec![TokenType::EqualEqual, TokenType::BangEqual]) {
+        while self.matches(&[TokenType::EqualEqual, TokenType::BangEqual]) {
             let previous = self.previous();
             let right = self.comparison();
             expr = Expr::Binary {
@@ -65,7 +65,7 @@ impl Parser {
         // a + - b
         let mut expr = self.term();
 
-        while self.matches(vec![
+        while self.matches(&[
             TokenType::Greater,
             TokenType::GreaterEqual,
             TokenType::Less,
@@ -87,7 +87,7 @@ impl Parser {
         // a * / b
         let mut expr = self.factor();
 
-        while self.matches(vec![TokenType::Minus, TokenType::Plus]) {
+        while self.matches(&[TokenType::Minus, TokenType::Plus]) {
             let previous = self.previous();
             let right = self.factor();
             expr = Expr::Binary {
@@ -103,7 +103,7 @@ impl Parser {
     fn factor(&mut self) -> Expr {
         let mut expr = self.unary();
 
-        while self.matches(vec![TokenType::Slash, TokenType::Star]) {
+        while self.matches(&[TokenType::Slash, TokenType::Star]) {
             let previous = self.previous();
             let right = self.unary();
             expr = Expr::Binary {
@@ -117,7 +117,7 @@ impl Parser {
     }
 
     fn unary(&mut self) -> Expr {
-        if self.matches(vec![TokenType::Bang, TokenType::Minus]) {
+        if self.matches(&[TokenType::Bang, TokenType::Minus]) {
             let previous = self.previous();
             let value = self.primary();
 
@@ -133,7 +133,7 @@ impl Parser {
     }
 
     fn primary(&mut self) -> PrimaryExprValue {
-        if self.matches(vec![
+        if self.matches(&[
             TokenType::String,
             TokenType::Identifier,
             TokenType::Number,
@@ -145,7 +145,7 @@ impl Parser {
             return PrimaryExprValue::Literal(previous.literal.unwrap());
         }
 
-        if self.matches(vec![TokenType::LeftParen]) {
+        if self.matches(&[TokenType::LeftParen]) {
             let expr = self.expression();
             self.consume(TokenType::RightParen);
             return PrimaryExprValue::Grouping(expr);
