@@ -1,15 +1,1 @@
-// this is a comment
-(( )){} // grouping stuff
-!*+-/=<> <= == // operators
-"asd"
-123 125.4213
-123.35124
-var andd and varandvar
-varand
-
-/*
-int foo() {
-    /* This is a comment */
-    return 42;
-}
-*/
+6 / 3 - 1

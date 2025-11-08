@@ -69,6 +69,16 @@ pub enum TokenType {
     EOF,
 }
 
+impl PartialEq for TokenType {
+    fn ne(&self, other: &Self) -> bool {
+        !self.eq(other)
+    }
+
+    fn eq(&self, other: &Self) -> bool {
+        core::mem::discriminant(self) == core::mem::discriminant(other)
+    }
+}
+
 impl Display for TokenType {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
@@ -121,9 +131,9 @@ impl Display for TokenType {
 
 #[derive(Clone)]
 pub struct Token {
-    token_type: TokenType,
+    pub token_type: TokenType,
     pub lexeme: String,
-    literal: Option<Literal>,
+    pub literal: Option<Literal>,
     line: usize,
 }
 

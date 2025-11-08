@@ -1,6 +1,6 @@
 use std::io::{Write, stdin, stdout};
 
-use crate::scanner::Scanner;
+use crate::{ast_printer::AstPrinter, parser::Parser, scanner::Scanner};
 
 pub struct Rlox;
 
@@ -11,23 +11,21 @@ impl Rlox {
 
     pub fn run(&self, source: &str) -> Result<(), Box<dyn std::error::Error>> {
         let mut scanner = Scanner::new(source.to_string());
-        match scanner.scan_tokens() {
-            Ok(tokens) => {
-                println!("Successfully scanned source code");
-                for token in tokens {
-                    println!("{}", token);
-                }
-                return Ok(());
-            }
-            Err(errors) => {
-                println!("Failed to scan source code");
-                for error in errors {
-                    println!("[{}] {}", error.line, error.message);
-                }
 
-                return Err("Scanning failed".into());
+        let tokens = scanner.scan_tokens().map_err(|errors| {
+            println!("Failed to scan source code");
+            for error in errors {
+                println!("[{}] {}", error.line, error.message);
             }
-        }
+            "Scanning failed"
+        })?;
+
+        let mut parser = Parser::new(tokens);
+        let expr = parser.parse();
+        let ast_printer = AstPrinter;
+        println!("{}", ast_printer.print(&expr));
+
+        Ok(())
     }
 }
 
