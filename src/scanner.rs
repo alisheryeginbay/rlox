@@ -67,6 +67,17 @@ impl Scanner {
         self.tokens.push(token);
     }
 
+    fn add_token_with_lexeme(
+        &mut self,
+        token_type: TokenType,
+        literal: Option<Literal>,
+        lexeme: impl Into<String>,
+    ) {
+        let token = Token::new(token_type, lexeme, literal, self.line);
+
+        self.tokens.push(token);
+    }
+
     fn advance(&mut self) -> char {
         let char = self.source[self.current];
         self.current += 1;
@@ -292,7 +303,7 @@ impl Scanner {
             return Err(self.errors.clone());
         }
 
-        self.add_token(TokenType::EOF, None);
+        self.add_token_with_lexeme(TokenType::EOF, None, "");
 
         return Ok(self.tokens.clone());
     }
