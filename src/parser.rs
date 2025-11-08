@@ -22,8 +22,13 @@ impl Parser {
         self.equality()
     }
 
+    fn is_at_end(&self) -> bool {
+        let token = &self.tokens[self.current];
+        token.token_type == TokenType::EOF
+    }
+
     fn matches(&mut self, tokens: Vec<TokenType>) -> bool {
-        if self.current + 1 >= self.tokens.len() {
+        if self.is_at_end() {
             return false;
         }
 
@@ -150,7 +155,7 @@ impl Parser {
     }
 
     fn consume(&mut self, token_type: TokenType) {
-        if self.current >= self.tokens.len() {
+        if self.is_at_end() {
             panic!("Beyond tokens' length");
         }
 
