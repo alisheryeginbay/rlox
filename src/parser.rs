@@ -68,18 +68,17 @@ impl Parser {
                 return;
             }
 
-            if (&[
-                TokenType::Class,
-                TokenType::Fn,
-                TokenType::Var,
-                TokenType::For,
-                TokenType::If,
-                TokenType::While,
-                TokenType::Print,
-                TokenType::Return,
-            ])
-                .contains(&self.peek().token_type)
-            {
+            if matches!(
+                self.peek().token_type,
+                TokenType::Class
+                    | TokenType::Fn
+                    | TokenType::Var
+                    | TokenType::For
+                    | TokenType::If
+                    | TokenType::While
+                    | TokenType::Print
+                    | TokenType::Return
+            ) {
                 return;
             }
 
