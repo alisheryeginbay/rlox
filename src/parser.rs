@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 use crate::{
     expr::{Expr, PrimaryExprValue},
     token::{Token, TokenType},
@@ -8,16 +10,36 @@ pub struct Parser {
     current: usize,
 }
 
+pub struct ParseError {
+    pub message: String,
+    token: Token,
+}
+
+impl ParseError {
+    fn new(message: impl Into<String>, token: Token) -> Self {
+        ParseError {
+            message: message.into(),
+            token,
+        }
+    }
+}
+
+impl Display for ParseError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Error: {} at line {}", self.message, self.token.line)
+    }
+}
+
 impl Parser {
     pub fn new(tokens: Vec<Token>) -> Self {
         Parser { tokens, current: 0 }
     }
 
-    pub fn parse(&mut self) -> Expr {
+    pub fn parse(&mut self) -> Result<Expr, ParseError> {
         self.expression()
     }
 
-    fn expression(&mut self) -> Expr {
+    fn expression(&mut self) -> Result<Expr, ParseError> {
         // a == != b
         self.equality()
     }
@@ -44,13 +66,13 @@ impl Parser {
         self.tokens[self.current - 1].clone()
     }
 
-    fn equality(&mut self) -> Expr {
+    fn equality(&mut self) -> Result<Expr, ParseError> {
         // a > >= < <= b
-        let mut expr = self.comparison();
+        let mut expr = self.comparison()?;
 
         while self.matches(&[TokenType::EqualEqual, TokenType::BangEqual]) {
             let previous = self.previous();
-            let right = self.comparison();
+            let right = self.comparison()?;
             expr = Expr::Binary {
                 left: Box::new(expr),
                 operator: previous,
@@ -58,12 +80,12 @@ impl Parser {
             };
         }
 
-        expr
+        Ok(expr)
     }
 
-    fn comparison(&mut self) -> Expr {
+    fn comparison(&mut self) -> Result<Expr, ParseError> {
         // a + - b
-        let mut expr = self.term();
+        let mut expr = self.term()?;
 
         while self.matches(&[
             TokenType::Greater,
@@ -72,7 +94,7 @@ impl Parser {
             TokenType::LessEqual,
         ]) {
             let previous = self.previous();
-            let right = self.term();
+            let right = self.term()?;
             expr = Expr::Binary {
                 left: Box::new(expr),
                 operator: previous,
@@ -80,16 +102,16 @@ impl Parser {
             };
         }
 
-        expr
+        Ok(expr)
     }
 
-    fn term(&mut self) -> Expr {
+    fn term(&mut self) -> Result<Expr, ParseError> {
         // a * / b
-        let mut expr = self.factor();
+        let mut expr = self.factor()?;
 
         while self.matches(&[TokenType::Minus, TokenType::Plus]) {
             let previous = self.previous();
-            let right = self.factor();
+            let right = self.factor()?;
             expr = Expr::Binary {
                 left: Box::new(expr),
                 operator: previous,
@@ -97,15 +119,15 @@ impl Parser {
             };
         }
 
-        expr
+        Ok(expr)
     }
 
-    fn factor(&mut self) -> Expr {
-        let mut expr = self.unary();
+    fn factor(&mut self) -> Result<Expr, ParseError> {
+        let mut expr = self.unary()?;
 
         while self.matches(&[TokenType::Slash, TokenType::Star]) {
             let previous = self.previous();
-            let right = self.unary();
+            let right = self.unary()?;
             expr = Expr::Binary {
                 left: Box::new(expr),
                 operator: previous,
@@ -113,26 +135,26 @@ impl Parser {
             };
         }
 
-        expr
+        Ok(expr)
     }
 
-    fn unary(&mut self) -> Expr {
+    fn unary(&mut self) -> Result<Expr, ParseError> {
         if self.matches(&[TokenType::Bang, TokenType::Minus]) {
             let previous = self.previous();
-            let value = self.primary();
+            let value = self.primary()?;
 
-            return Expr::Unary {
+            return Ok(Expr::Unary {
                 operator: previous,
                 right: Box::new(Expr::from(value)),
-            };
+            });
         }
 
-        let value = self.primary();
+        let value = self.primary()?;
 
-        return Expr::from(value);
+        return Ok(Expr::from(value));
     }
 
-    fn primary(&mut self) -> PrimaryExprValue {
+    fn primary(&mut self) -> Result<PrimaryExprValue, ParseError> {
         if self.matches(&[
             TokenType::String,
             TokenType::Identifier,
@@ -142,27 +164,36 @@ impl Parser {
             TokenType::Nil,
         ]) {
             let previous = self.previous();
-            return PrimaryExprValue::Literal(previous.literal.unwrap());
+            return Ok(PrimaryExprValue::Literal(previous.literal.unwrap()));
         }
 
         if self.matches(&[TokenType::LeftParen]) {
-            let expr = self.expression();
-            self.consume(TokenType::RightParen);
-            return PrimaryExprValue::Grouping(expr);
+            let expr = self.expression()?;
+            self.consume(TokenType::RightParen)?;
+            return Ok(PrimaryExprValue::Grouping(expr));
         }
 
-        panic!("Invalid expression (primary)");
+        let previous = self.previous();
+
+        Err(ParseError::new("Invalid expression (primary)", previous))
     }
 
-    fn consume(&mut self, token_type: TokenType) {
+    fn consume(&mut self, token_type: TokenType) -> Result<(), ParseError> {
+        let current_token = self.tokens[self.current].clone();
+
         if self.is_at_end() {
-            panic!("Beyond tokens' length");
+            return Err(ParseError::new("Beyond tokens' length", current_token));
         }
 
-        if self.tokens[self.current].token_type != token_type {
-            panic!("Expected {} after expression.", token_type);
+        if current_token.token_type != token_type {
+            return Err(ParseError::new(
+                format!("Expected {} after expression.", token_type),
+                current_token,
+            ));
         }
 
         self.current += 1;
+
+        Ok(())
     }
 }
