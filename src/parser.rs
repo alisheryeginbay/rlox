@@ -49,6 +49,44 @@ impl Parser {
         token.token_type == TokenType::EOF
     }
 
+    fn advance(&mut self) -> Token {
+        if !self.is_at_end() {
+            self.current += 1;
+        }
+        self.previous()
+    }
+
+    fn peek(&self) -> &Token {
+        &self.tokens[self.current]
+    }
+
+    fn synchronize(&mut self) {
+        self.advance();
+
+        while !self.is_at_end() {
+            if self.previous().token_type == TokenType::Semicolon {
+                return;
+            }
+
+            if (&[
+                TokenType::Class,
+                TokenType::Fn,
+                TokenType::Var,
+                TokenType::For,
+                TokenType::If,
+                TokenType::While,
+                TokenType::Print,
+                TokenType::Return,
+            ])
+                .contains(&self.peek().token_type)
+            {
+                return;
+            }
+
+            self.advance();
+        }
+    }
+
     fn matches(&mut self, tokens: &[TokenType]) -> bool {
         if self.is_at_end() {
             return false;
