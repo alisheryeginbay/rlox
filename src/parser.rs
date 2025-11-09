@@ -173,9 +173,12 @@ impl Parser {
             return Ok(PrimaryExprValue::Grouping(expr));
         }
 
-        let previous = self.previous();
+        let current_token = self.tokens[self.current].clone();
 
-        Err(ParseError::new("Invalid expression (primary)", previous))
+        Err(ParseError::new(
+            "Invalid expression (primary)",
+            current_token,
+        ))
     }
 
     fn consume(&mut self, token_type: TokenType) -> Result<(), ParseError> {
