@@ -41,7 +41,7 @@ impl Parser {
 
     fn expression(&mut self) -> Result<Expr, ParseError> {
         // a == != b
-        self.equality()
+        self.block()
     }
 
     fn is_at_end(&self) -> bool {
@@ -101,6 +101,22 @@ impl Parser {
 
     fn previous(&self) -> Token {
         self.tokens[self.current - 1].clone()
+    }
+
+    fn block(&mut self) -> Result<Expr, ParseError> {
+        let mut expr = self.equality()?;
+
+        while self.matches(&[TokenType::Comma]) {
+            let previous = self.previous();
+            let right = self.equality()?;
+            expr = Expr::Binary {
+                left: Box::new(expr),
+                operator: previous,
+                right: Box::new(right),
+            }
+        }
+
+        Ok(expr)
     }
 
     fn equality(&mut self) -> Result<Expr, ParseError> {
