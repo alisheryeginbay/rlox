@@ -66,6 +66,10 @@ pub enum TokenType {
     Var,
     While,
 
+    // Ternary operator
+    Question,
+    Colon,
+
     EOF,
 }
 
@@ -123,6 +127,9 @@ impl Display for TokenType {
             TokenType::True => write!(f, "True"),
             TokenType::Var => write!(f, "Var"),
             TokenType::While => write!(f, "While"),
+
+            TokenType::Colon => write!(f, "Colon"),
+            TokenType::Question => write!(f, "Question"),
 
             TokenType::EOF => write!(f, "EOF"),
         }

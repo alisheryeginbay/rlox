@@ -289,6 +289,9 @@ impl Scanner {
 
             c if c.is_ascii_alphabetic() => self.identifier(),
 
+            '?' => self.add_token(TokenType::Question, None),
+            ':' => self.add_token(TokenType::Colon, None),
+
             _ => self.error(self.line, &format!("Unexpected character: {}", char)),
         }
     }

@@ -6,6 +6,11 @@ pub enum Expr {
         operator: Token,
         right: Box<Expr>,
     },
+    Ternary {
+        condition: Box<Expr>,
+        positive: Box<Expr>,
+        negative: Box<Expr>,
+    },
     Grouping {
         expression: Box<Expr>,
     },

@@ -27,6 +27,11 @@ impl AstPrinter {
             } => self.parenthesize(&operator.lexeme, &[left, right]),
             Expr::Grouping { expression } => self.parenthesize("group", &[expression]),
             Expr::Literal { value } => value.to_string(),
+            Expr::Ternary {
+                condition,
+                positive,
+                negative,
+            } => self.parenthesize("?:", &[condition, positive, negative]),
         }
     }
 }

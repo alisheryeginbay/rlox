@@ -104,16 +104,36 @@ impl Parser {
     }
 
     fn block(&mut self) -> Result<Expr, ParseError> {
-        let mut expr = self.equality()?;
+        let mut expr = self.ternary()?;
 
         while self.matches(&[TokenType::Comma]) {
             let previous = self.previous();
-            let right = self.equality()?;
+            let right = self.ternary()?;
             expr = Expr::Binary {
                 left: Box::new(expr),
                 operator: previous,
                 right: Box::new(right),
             }
+        }
+
+        Ok(expr)
+    }
+
+    fn ternary(&mut self) -> Result<Expr, ParseError> {
+        let mut expr = self.equality()?;
+
+        if self.matches(&[TokenType::Question]) {
+            let positive = self.ternary()?;
+            self.consume(TokenType::Colon)?;
+            let negative = self.ternary()?;
+
+            expr = Expr::Ternary {
+                condition: Box::new(expr),
+                positive: Box::new(positive),
+                negative: Box::new(negative),
+            };
+
+            return Ok(expr);
         }
 
         Ok(expr)
