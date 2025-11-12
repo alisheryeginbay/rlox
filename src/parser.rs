@@ -5,14 +5,16 @@ use crate::{
     token::{Token, TokenType},
 };
 
-pub struct Parser {
-    tokens: Vec<Token>,
-    current: usize,
-}
-
+#[derive(Clone)]
 pub struct ParseError {
     pub message: String,
     token: Token,
+}
+
+pub struct Parser {
+    tokens: Vec<Token>,
+    current: usize,
+    pub errors: Vec<ParseError>,
 }
 
 impl ParseError {
@@ -26,17 +28,33 @@ impl ParseError {
 
 impl Display for ParseError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "Error: {} at line {}", self.message, self.token.line)
+        write!(
+            f,
+            "ParseError: {} at line {}",
+            self.message, self.token.line
+        )
     }
 }
 
 impl Parser {
     pub fn new(tokens: Vec<Token>) -> Self {
-        Parser { tokens, current: 0 }
+        Parser {
+            tokens,
+            current: 0,
+            errors: vec![],
+        }
     }
 
-    pub fn parse(&mut self) -> Result<Expr, ParseError> {
+    fn report_error<T: Into<String>>(&mut self, message: T, token: Token) {
+        let error = ParseError::new(message, token);
+        self.errors.push(error);
+    }
+
+    pub fn parse(&mut self) -> Option<Expr> {
         self.expression()
+            .inspect_err(|err| self.errors.push(err.clone()))
+            .ok()
+            .filter(|_| self.errors.is_empty())
     }
 
     fn expression(&mut self) -> Result<Expr, ParseError> {
@@ -124,7 +142,7 @@ impl Parser {
 
         if self.matches(&[TokenType::Question]) {
             let positive = self.ternary()?;
-            self.consume(TokenType::Colon)?;
+            self.consume_if(TokenType::Colon)?;
             let negative = self.ternary()?;
 
             expr = Expr::Ternary {
@@ -242,11 +260,35 @@ impl Parser {
 
         if self.matches(&[TokenType::LeftParen]) {
             let expr = self.expression()?;
-            self.consume(TokenType::RightParen)?;
+            self.consume_if(TokenType::RightParen)?;
             return Ok(PrimaryExprValue::Grouping(expr));
         }
 
         let current_token = self.tokens[self.current].clone();
+
+        if matches!(
+            current_token.token_type,
+            TokenType::Plus
+                | TokenType::Star
+                | TokenType::Slash
+                | TokenType::Greater
+                | TokenType::GreaterEqual
+                | TokenType::Less
+                | TokenType::LessEqual
+                | TokenType::EqualEqual
+                | TokenType::BangEqual
+        ) {
+            self.report_error(
+                format!("Expected operand before {}", current_token.lexeme),
+                current_token.clone(),
+            );
+
+            self.consume()?;
+
+            return self
+                .expression()
+                .map(|expr| PrimaryExprValue::Grouping(expr));
+        }
 
         Err(ParseError::new(
             "Invalid expression (primary)",
@@ -254,7 +296,19 @@ impl Parser {
         ))
     }
 
-    fn consume(&mut self, token_type: TokenType) -> Result<(), ParseError> {
+    fn consume(&mut self) -> Result<(), ParseError> {
+        let current_token = self.tokens[self.current].clone();
+
+        if self.is_at_end() {
+            return Err(ParseError::new("Beyond tokens' length", current_token));
+        }
+
+        self.current += 1;
+
+        Ok(())
+    }
+
+    fn consume_if(&mut self, token_type: TokenType) -> Result<(), ParseError> {
         let current_token = self.tokens[self.current].clone();
 
         if self.is_at_end() {

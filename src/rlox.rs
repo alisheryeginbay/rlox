@@ -21,14 +21,21 @@ impl Rlox {
         })?;
 
         let mut parser = Parser::new(tokens);
-        let expr = parser.parse().map_err(|error| {
-            println!("Failed to parse tokens: {}", error);
-            "Parsing failed"
-        })?;
-        let ast_printer = AstPrinter;
-        println!("{}", ast_printer.print(&expr));
+        match parser.parse() {
+            Some(expr) => {
+                let ast_printer = AstPrinter;
+                println!("{}", ast_printer.print(&expr));
 
-        Ok(())
+                Ok(())
+            }
+            None => {
+                for error in parser.errors {
+                    println!("{}", error);
+                }
+
+                return Err("Parsing failed".into());
+            }
+        }
     }
 }
 
