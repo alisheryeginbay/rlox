@@ -178,9 +178,14 @@ impl Scanner {
             .collect();
 
         match KEYWORDS.get(text.as_str()) {
-            Some(token_type) => {
-                self.add_token(token_type.clone(), None);
-            }
+            Some(token_type) => match token_type {
+                TokenType::True => self.add_token(token_type.clone(), Some(Literal::Boolean(true))),
+                TokenType::False => {
+                    self.add_token(token_type.clone(), Some(Literal::Boolean(false)))
+                }
+                TokenType::Nil => self.add_token(token_type.clone(), Some(Literal::Nil)),
+                _ => self.add_token(token_type.clone(), None),
+            },
             None => {
                 let literal = Literal::String(text);
                 self.add_token(TokenType::Identifier, Some(literal));
