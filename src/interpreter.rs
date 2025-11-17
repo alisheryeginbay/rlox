@@ -44,7 +44,7 @@ impl Interpreter {
                             }
                         }
                     }
-                    TokenType::Bang => Literal::Boolean(self.is_truthy(&value)),
+                    TokenType::Bang => Literal::Boolean(!self.is_truthy(&value)),
                     _ => panic!("Invalid operator for an unary expression"),
                 }
             }
