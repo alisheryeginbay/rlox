@@ -8,6 +8,33 @@ pub enum Literal {
     Nil,
 }
 
+impl Literal {
+    pub fn as_string(&self) -> Option<&String> {
+        match self {
+            Literal::String(s) => Some(s),
+            _ => None,
+        }
+    }
+
+    pub fn as_number(&self) -> Option<f64> {
+        match self {
+            Literal::Number(n) => Some(*n),
+            _ => None,
+        }
+    }
+
+    pub fn as_bool(&self) -> Option<bool> {
+        match self {
+            Literal::Boolean(b) => Some(*b),
+            _ => None,
+        }
+    }
+
+    pub fn is_nil(&self) -> bool {
+        matches!(self, Literal::Nil)
+    }
+}
+
 impl Display for Literal {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
