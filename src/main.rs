@@ -8,6 +8,7 @@ use crate::rlox::Repl;
 
 mod ast_printer;
 mod expr;
+mod interpreter;
 mod parser;
 mod rlox;
 mod scanner;

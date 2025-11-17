@@ -1,6 +1,6 @@
 use std::io::{Write, stdin, stdout};
 
-use crate::{ast_printer::AstPrinter, parser::Parser, scanner::Scanner};
+use crate::{ast_printer::AstPrinter, interpreter::Interpreter, parser::Parser, scanner::Scanner};
 
 pub struct Rlox;
 
@@ -25,6 +25,9 @@ impl Rlox {
             Some(expr) => {
                 let ast_printer = AstPrinter;
                 println!("{}", ast_printer.print(&expr));
+
+                let interpreter = Interpreter::new();
+                interpreter.interpret(expr);
 
                 Ok(())
             }
