@@ -69,6 +69,8 @@ impl Interpreter {
                         TokenType::Star => Literal::Number(l * r),
                         _ => panic!("Invalid operator for a binary expression"),
                     },
+                    (Literal::String(l), r) => Literal::String(l.to_string() + &r.to_string()),
+                    (l, Literal::String(r)) => Literal::String(l.to_string() + &r.to_string()),
                     _ => {
                         panic!("Both operands must be numbers")
                     }
