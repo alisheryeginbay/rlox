@@ -132,7 +132,7 @@ impl Scanner {
 
         self.advance();
 
-        let value = self.source[self.start..self.current]
+        let value = self.source[self.start + 1..self.current - 1]
             .to_vec()
             .iter()
             .collect();
