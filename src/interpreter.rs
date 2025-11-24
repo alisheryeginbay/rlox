@@ -1,12 +1,15 @@
 use std::{error::Error, fmt::Display};
 
 use crate::{
+    environment::Environment,
     expr::Expr,
     stmt::Stmt,
     token::{Literal, TokenType},
 };
 
-pub struct Interpreter;
+pub struct Interpreter {
+    environment: Environment,
+}
 
 #[derive(Debug)]
 pub struct RuntimeError {
@@ -24,10 +27,12 @@ impl Error for RuntimeError {}
 
 impl Interpreter {
     pub fn new() -> Self {
-        Interpreter
+        Interpreter {
+            environment: Environment::new(),
+        }
     }
 
-    pub fn interpret(&self, statements: Vec<Stmt>) -> Result<(), RuntimeError> {
+    pub fn interpret(&mut self, statements: Vec<Stmt>) -> Result<(), RuntimeError> {
         for statement in statements {
             self.execute(&statement)?;
         }
@@ -47,7 +52,7 @@ impl Interpreter {
         }
     }
 
-    fn execute(&self, stmt: &Stmt) -> Result<(), RuntimeError> {
+    fn execute(&mut self, stmt: &Stmt) -> Result<(), RuntimeError> {
         match stmt {
             Stmt::Expression { expression } => {
                 let value = self.evaluate(expression)?;
@@ -56,6 +61,12 @@ impl Interpreter {
             Stmt::Print { expression } => {
                 let value = self.evaluate(expression)?;
                 println!("{}", self.stringify(&value));
+                Ok(())
+            }
+            Stmt::Var { name, initializer } => {
+                let value = self.evaluate(initializer)?;
+                // println!("{} = {}", name.lexeme, self.stringify(&value));
+                self.environment.define(name.lexeme.clone(), value)?;
                 Ok(())
             }
         }
@@ -148,6 +159,10 @@ impl Interpreter {
                 } else {
                     self.evaluate(negative)
                 }
+            }
+            Expr::Variable { name } => {
+                dbg!(name);
+                self.environment.get(name).cloned()
             }
         }
     }

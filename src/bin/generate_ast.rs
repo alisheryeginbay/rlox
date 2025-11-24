@@ -15,17 +15,23 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             "Ternary",
             "condition: Box<Expr>, positive: Box<Expr>, negative: Box<Expr>",
         ),
+        ("Variable", "name: Token"),
     ]);
 
     let statements = HashMap::from([
         ("Expression", "expression: Box<Expr>"),
         ("Print", "expression: Box<Expr>"),
+        ("Var", "name: Token, initializer: Box<Expr>"),
     ]);
 
     define_ast("Expr", expressions, &["crate::token::*"])?;
     println!("Generated Expr enum");
 
-    define_ast("Stmt", statements, &["crate::expr::Expr"])?;
+    define_ast(
+        "Stmt",
+        statements,
+        &["crate::expr::Expr", "crate::token::Token"],
+    )?;
     println!("Generated Stmt enum");
 
     Ok(())

@@ -8,7 +8,9 @@ use crate::{
     scanner::{ScanError, Scanner},
 };
 
-pub struct Rlox;
+pub struct Rlox {
+    interpreter: Interpreter,
+}
 
 #[derive(Error, Debug)]
 pub enum RloxError {
@@ -24,10 +26,12 @@ pub enum RloxError {
 
 impl Rlox {
     pub fn new() -> Self {
-        Self {}
+        Self {
+            interpreter: Interpreter::new(),
+        }
     }
 
-    pub fn run(&self, source: &str) -> Result<(), Vec<RloxError>> {
+    pub fn run(&mut self, source: &str) -> Result<(), Vec<RloxError>> {
         let mut scanner = Scanner::new(source.to_string());
 
         let tokens = scanner
@@ -39,8 +43,7 @@ impl Rlox {
             .parse()
             .map_err(|errors| errors.into_iter().map(RloxError::Parse).collect::<Vec<_>>())?;
 
-        let interpreter = Interpreter::new();
-        interpreter
+        self.interpreter
             .interpret(expr)
             .map_err(|error| vec![RloxError::Runtime(error)])?;
 
@@ -57,7 +60,7 @@ impl Repl {
         Repl { rlox }
     }
 
-    pub fn run(&self) {
+    pub fn run(&mut self) {
         loop {
             print!("> ");
             stdout().flush().unwrap();

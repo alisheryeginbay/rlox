@@ -1,6 +1,6 @@
 use std::fmt::{self, Display};
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub enum Literal {
     String(String),
     Number(f64),
@@ -46,7 +46,7 @@ impl Display for Literal {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub enum TokenType {
     LeftParen,
     RightParen,
@@ -163,7 +163,7 @@ impl Display for TokenType {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Token {
     pub token_type: TokenType,
     pub lexeme: String,

@@ -7,10 +7,10 @@ use std::{
 use crate::rlox::Repl;
 
 mod ast_printer;
+mod environment;
 mod expr;
 mod interpreter;
 mod parser;
-mod primary_expr;
 mod rlox;
 mod scanner;
 mod stmt;
@@ -29,10 +29,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         return Ok(());
     }
 
-    let rlox = rlox::Rlox::new();
+    let mut rlox = rlox::Rlox::new();
 
     if args.len() == 1 {
-        let repl = Repl::new(rlox);
+        let mut repl = Repl::new(rlox);
         repl.run();
         return Ok(());
     }

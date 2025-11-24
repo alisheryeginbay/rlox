@@ -2,9 +2,8 @@ use std::{error::Error, fmt::Display};
 
 use crate::{
     expr::Expr,
-    primary_expr::PrimaryExprValue,
     stmt::Stmt,
-    token::{Token, TokenType},
+    token::{Literal, Token, TokenType},
 };
 
 #[derive(Clone, Debug)]
@@ -46,7 +45,7 @@ impl Parser {
     pub fn parse(&mut self) -> Result<Vec<Stmt>, Vec<ParseError>> {
         let mut statements: Vec<Stmt> = vec![];
         while !self.is_at_end() {
-            match self.statement() {
+            match self.declaration() {
                 Ok(stmt) => {
                     statements.push(stmt);
                 }
@@ -61,6 +60,34 @@ impl Parser {
         }
 
         Ok(statements)
+    }
+
+    fn declaration(&mut self) -> Result<Stmt, ParseError> {
+        if self.matches(&[TokenType::Var]) {
+            return self.var_declaration();
+        }
+
+        self.statement()
+    }
+
+    fn var_declaration(&mut self) -> Result<Stmt, ParseError> {
+        let token = self.consume_if(TokenType::Identifier)?;
+        let mut expression = Expr::Literal {
+            value: Literal::Nil,
+        };
+
+        if self.matches(&[TokenType::Equal]) {
+            expression = self.expression()?;
+        }
+
+        self.consume_if(TokenType::Semicolon)?;
+
+        let stmt = Stmt::Var {
+            name: token,
+            initializer: Box::new(expression),
+        };
+
+        Ok(stmt)
     }
 
     fn statement(&mut self) -> Result<Stmt, ParseError> {
@@ -275,23 +302,31 @@ impl Parser {
         return Ok(Expr::from(value));
     }
 
-    fn primary(&mut self) -> Result<PrimaryExprValue, ParseError> {
+    fn primary(&mut self) -> Result<Expr, ParseError> {
+        if self.matches(&[TokenType::Identifier]) {
+            let previous = self.previous();
+            return Ok(Expr::Variable { name: previous });
+        }
+
         if self.matches(&[
             TokenType::String,
-            TokenType::Identifier,
             TokenType::Number,
             TokenType::True,
             TokenType::False,
             TokenType::Nil,
         ]) {
             let previous = self.previous();
-            return Ok(PrimaryExprValue::Literal(previous.literal.unwrap()));
+            return Ok(Expr::Literal {
+                value: previous.literal.unwrap(),
+            });
         }
 
         if self.matches(&[TokenType::LeftParen]) {
             let expr = self.expression()?;
             self.consume_if(TokenType::RightParen)?;
-            return Ok(PrimaryExprValue::Grouping(expr));
+            return Ok(Expr::Grouping {
+                expression: Box::new(expr),
+            });
         }
 
         let current_token = self.tokens[self.current].clone();
@@ -315,9 +350,7 @@ impl Parser {
 
             self.consume()?;
 
-            return self
-                .expression()
-                .map(|expr| PrimaryExprValue::Grouping(expr));
+            return self.expression();
         }
 
         Err(ParseError {
@@ -341,7 +374,7 @@ impl Parser {
         Ok(())
     }
 
-    fn consume_if(&mut self, token_type: TokenType) -> Result<(), ParseError> {
+    fn consume_if(&mut self, token_type: TokenType) -> Result<Token, ParseError> {
         let current_token = self.tokens[self.current].clone();
 
         if self.is_at_end() {
@@ -360,6 +393,6 @@ impl Parser {
 
         self.current += 1;
 
-        Ok(())
+        Ok(current_token)
     }
 }

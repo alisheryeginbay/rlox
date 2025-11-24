@@ -32,6 +32,7 @@ impl AstPrinter {
                 positive,
                 negative,
             } => self.parenthesize("?:", &[condition, positive, negative]),
+            Expr::Variable { name } => name.to_string(),
         }
     }
 }
