@@ -22,16 +22,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         ("Print", "expression: Box<Expr>"),
     ]);
 
-    define_ast("Expr", expressions)?;
+    define_ast("Expr", expressions, &["crate::token::*"])?;
     println!("Generated Expr enum");
 
-    define_ast("Stmt", statements)?;
+    define_ast("Stmt", statements, &["crate::expr::Expr"])?;
     println!("Generated Stmt enum");
 
     Ok(())
 }
-
-const IMPORTS: &[&str] = &["token"];
 
 fn define_type(
     mut writer: impl Write,
@@ -53,12 +51,16 @@ fn define_type(
     Ok(())
 }
 
-fn define_ast(base_name: &str, expressions: HashMap<&str, &str>) -> Result<(), std::io::Error> {
+fn define_ast(
+    base_name: &str,
+    expressions: HashMap<&str, &str>,
+    imports: &[&str],
+) -> Result<(), std::io::Error> {
     let output_path = format!("src/{}.rs", base_name.to_lowercase());
     let mut file = File::create(output_path)?;
 
-    for import in IMPORTS {
-        writeln!(file, "use crate::{}::*;", import)?;
+    for import in imports {
+        writeln!(file, "use {};", import)?;
     }
 
     writeln!(file)?;
