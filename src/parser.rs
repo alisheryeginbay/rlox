@@ -1,7 +1,8 @@
 use std::{error::Error, fmt::Display};
 
 use crate::{
-    expr::{Expr, PrimaryExprValue},
+    expr::Expr,
+    primary_expr::PrimaryExprValue,
     token::{Token, TokenType},
 };
 
