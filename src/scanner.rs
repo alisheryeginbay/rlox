@@ -1,4 +1,4 @@
-use std::{collections::HashMap, sync::LazyLock};
+use std::{collections::HashMap, error::Error, fmt::Display, sync::LazyLock};
 
 use crate::token::{Literal, Token, TokenType};
 
@@ -34,11 +34,19 @@ pub struct Scanner {
     errors: Vec<ScanError>,
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct ScanError {
     pub line: usize,
     pub message: String,
 }
+
+impl Display for ScanError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "[line {}] {}", self.line, self.message)
+    }
+}
+
+impl Error for ScanError {}
 
 impl Scanner {
     pub fn new(source: String) -> Self {

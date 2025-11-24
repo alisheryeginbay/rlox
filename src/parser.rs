@@ -1,40 +1,29 @@
-use std::fmt::Display;
+use std::{error::Error, fmt::Display};
 
 use crate::{
     expr::{Expr, PrimaryExprValue},
     token::{Token, TokenType},
 };
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct ParseError {
+    pub line: usize,
     pub message: String,
-    token: Token,
 }
 
 pub struct Parser {
     tokens: Vec<Token>,
     current: usize,
-    pub errors: Vec<ParseError>,
-}
-
-impl ParseError {
-    fn new(message: impl Into<String>, token: Token) -> Self {
-        ParseError {
-            message: message.into(),
-            token,
-        }
-    }
+    errors: Vec<ParseError>,
 }
 
 impl Display for ParseError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f,
-            "ParseError: {} at line {}",
-            self.message, self.token.line
-        )
+        write!(f, "[line {}] {}", self.message, self.line)
     }
 }
+
+impl Error for ParseError {}
 
 impl Parser {
     pub fn new(tokens: Vec<Token>) -> Self {
@@ -46,15 +35,17 @@ impl Parser {
     }
 
     fn report_error<T: Into<String>>(&mut self, message: T, token: Token) {
-        let error = ParseError::new(message, token);
-        self.errors.push(error);
+        self.errors.push(ParseError {
+            message: message.into(),
+            line: token.line,
+        });
     }
 
-    pub fn parse(&mut self) -> Option<Expr> {
-        self.expression()
-            .inspect_err(|err| self.errors.push(err.clone()))
-            .ok()
-            .filter(|_| self.errors.is_empty())
+    pub fn parse(&mut self) -> Result<Expr, Vec<ParseError>> {
+        self.expression().or_else(|err| {
+            self.errors.push(err);
+            Err(self.errors.clone())
+        })
     }
 
     fn expression(&mut self) -> Result<Expr, ParseError> {
@@ -290,17 +281,20 @@ impl Parser {
                 .map(|expr| PrimaryExprValue::Grouping(expr));
         }
 
-        Err(ParseError::new(
-            "Invalid expression (primary)",
-            current_token,
-        ))
+        Err(ParseError {
+            message: "Invalid expression (primary)".to_string(),
+            line: current_token.line,
+        })
     }
 
     fn consume(&mut self) -> Result<(), ParseError> {
         let current_token = self.tokens[self.current].clone();
 
         if self.is_at_end() {
-            return Err(ParseError::new("Beyond tokens' length", current_token));
+            return Err(ParseError {
+                message: "Beyond tokens' length".to_string(),
+                line: current_token.line,
+            });
         }
 
         self.current += 1;
@@ -312,14 +306,17 @@ impl Parser {
         let current_token = self.tokens[self.current].clone();
 
         if self.is_at_end() {
-            return Err(ParseError::new("Beyond tokens' length", current_token));
+            return Err(ParseError {
+                message: "Beyond tokens' length".to_string(),
+                line: current_token.line,
+            });
         }
 
         if current_token.token_type != token_type {
-            return Err(ParseError::new(
-                format!("Expected {} after expression.", token_type),
-                current_token,
-            ));
+            return Err(ParseError {
+                message: format!("Expected {} after expression.", token_type),
+                line: current_token.line,
+            });
         }
 
         self.current += 1;

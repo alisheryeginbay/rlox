@@ -1,44 +1,53 @@
 use std::io::{Write, stdin, stdout};
+use thiserror::Error;
 
-use crate::{ast_printer::AstPrinter, interpreter::Interpreter, parser::Parser, scanner::Scanner};
+use crate::{
+    ast_printer::AstPrinter,
+    interpreter::{Interpreter, RuntimeError},
+    parser::{ParseError, Parser},
+    scanner::{ScanError, Scanner},
+};
 
 pub struct Rlox;
+
+#[derive(Error, Debug)]
+pub enum RloxError {
+    #[error("scan errors: {0}")]
+    Scan(#[from] ScanError),
+
+    #[error("parse error: {0}")]
+    Parse(#[from] ParseError),
+
+    #[error("runtime error: {0}")]
+    Runtime(#[from] RuntimeError),
+}
 
 impl Rlox {
     pub fn new() -> Self {
         Self {}
     }
 
-    pub fn run(&self, source: &str) -> Result<(), Box<dyn std::error::Error>> {
+    pub fn run(&self, source: &str) -> Result<(), Vec<RloxError>> {
         let mut scanner = Scanner::new(source.to_string());
 
-        let tokens = scanner.scan_tokens().map_err(|errors| {
-            println!("Failed to scan source code");
-            for error in errors {
-                println!("[{}] {}", error.line, error.message);
-            }
-            "Scanning failed"
-        })?;
+        let tokens = scanner
+            .scan_tokens()
+            .map_err(|errors| errors.into_iter().map(RloxError::Scan).collect::<Vec<_>>())?;
 
         let mut parser = Parser::new(tokens);
-        match parser.parse() {
-            Some(expr) => {
-                let ast_printer = AstPrinter;
-                println!("{}", ast_printer.print(&expr));
+        let expr = parser
+            .parse()
+            .map_err(|errors| errors.into_iter().map(RloxError::Parse).collect::<Vec<_>>())?;
 
-                let interpreter = Interpreter::new();
-                interpreter.interpret(expr);
+        let ast_printer = AstPrinter;
+        println!("{}", ast_printer.print(&expr));
 
-                Ok(())
-            }
-            None => {
-                for error in parser.errors {
-                    println!("{}", error);
-                }
+        let interpreter = Interpreter::new();
+        interpreter
+            .interpret(expr)
+            .map_err(|error| vec![RloxError::Runtime(error)])?;
 
-                return Err("Parsing failed".into());
-            }
-        }
+        Ok(())
     }
 }
 
@@ -65,9 +74,10 @@ impl Repl {
                 break;
             }
 
-            match self.rlox.run(input) {
-                Ok(_) => println!("Source code executed successfully"),
-                Err(e) => eprintln!("Error executing source code: {}", e),
+            if let Err(errors) = self.rlox.run(input) {
+                for error in errors {
+                    eprintln!("{}", error);
+                }
             }
         }
     }

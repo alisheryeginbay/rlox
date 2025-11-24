@@ -1,3 +1,5 @@
+use std::{error::Error, fmt::Display};
+
 use crate::{
     expr::Expr,
     token::{Literal, TokenType},
@@ -5,14 +7,29 @@ use crate::{
 
 pub struct Interpreter;
 
+#[derive(Debug)]
+pub struct RuntimeError {
+    pub message: String,
+    pub line: usize,
+}
+
+impl Display for RuntimeError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "[error at line {}] {}", self.line, self.message)
+    }
+}
+
+impl Error for RuntimeError {}
+
 impl Interpreter {
     pub fn new() -> Self {
         Interpreter
     }
 
-    pub fn interpret(&self, expr: Expr) {
-        let value = self.evaluate(&expr);
+    pub fn interpret(&self, expr: Expr) -> Result<(), RuntimeError> {
+        let value = self.evaluate(&expr)?;
         println!("{}", self.stringify(&value));
+        Ok(())
     }
 
     fn stringify(&self, value: &Literal) -> String {
@@ -28,24 +45,30 @@ impl Interpreter {
         }
     }
 
-    fn evaluate(&self, expr: &Expr) -> Literal {
+    fn evaluate(&self, expr: &Expr) -> Result<Literal, RuntimeError> {
         match expr {
-            Expr::Literal { value } => value.clone(),
+            Expr::Literal { value } => Ok(value.clone()),
             Expr::Grouping { expression } => self.evaluate(&expression),
             Expr::Unary { operator, right } => {
-                let value = self.evaluate(&right);
+                let value = self.evaluate(&right)?;
                 match operator.token_type {
                     TokenType::Minus => {
                         let value = value.as_number();
                         match value {
-                            Some(v) => Literal::Number(-v),
+                            Some(v) => Ok(Literal::Number(-v)),
                             None => {
                                 panic!("Operand must be a number")
                             }
                         }
                     }
-                    TokenType::Bang => Literal::Boolean(!self.is_truthy(&value)),
-                    _ => panic!("Invalid operator for an unary expression"),
+                    TokenType::Bang => Ok(Literal::Boolean(!self.is_truthy(&value))),
+                    _ => {
+                        eprintln!("Invalid operator for an unary expression");
+                        Err(RuntimeError {
+                            message: "Invalid operator for an unary expression".to_string(),
+                            line: operator.line,
+                        })
+                    }
                 }
             }
             Expr::Binary {
@@ -53,10 +76,10 @@ impl Interpreter {
                 operator,
                 right,
             } => {
-                let left_value = self.evaluate(&left);
-                let right_value = self.evaluate(&right);
+                let left_value = self.evaluate(&left)?;
+                let right_value = self.evaluate(&right)?;
 
-                match (left_value, right_value) {
+                Ok(match (left_value, right_value) {
                     (Literal::Number(l), Literal::Number(r)) => match operator.token_type {
                         TokenType::GreaterEqual => Literal::Boolean(l >= r),
                         TokenType::Greater => Literal::Boolean(l > r),
@@ -67,21 +90,33 @@ impl Interpreter {
                         TokenType::Plus => Literal::Number(l + r),
                         TokenType::Minus => Literal::Number(l - r),
                         TokenType::Star => Literal::Number(l * r),
-                        _ => panic!("Invalid operator for a binary expression"),
+
+                        _ => {
+                            return Err(RuntimeError {
+                                line: operator.line,
+                                message: "Invalid operator for a binary expression".to_string(),
+                            });
+                        }
                     },
                     (Literal::String(l), r) => Literal::String(l.to_string() + &r.to_string()),
                     (l, Literal::String(r)) => Literal::String(l.to_string() + &r.to_string()),
                     _ => {
-                        panic!("Both operands must be numbers")
+                        return Err(RuntimeError {
+                            line: operator.line,
+                            message: format!(
+                                "Can not perform {} on this expression",
+                                operator.lexeme
+                            ),
+                        });
                     }
-                }
+                })
             }
             Expr::Ternary {
                 condition,
                 positive,
                 negative,
             } => {
-                let value = self.evaluate(&condition);
+                let value = self.evaluate(&condition)?;
                 if self.is_truthy(&value) {
                     self.evaluate(positive)
                 } else {

@@ -56,9 +56,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
     };
 
-    match rlox.run(contents.as_str()) {
-        Ok(_) => println!("Source code executed successfully"),
-        Err(e) => eprintln!("Error executing source code: {}", e),
+    if let Err(errors) = rlox.run(contents.as_str()) {
+        for error in errors {
+            eprintln!("{}", error);
+        }
     }
 
     Ok(())
