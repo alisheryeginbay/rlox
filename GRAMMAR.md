@@ -1,3 +1,7 @@
+program        → statement* EOF; 
+statement      → exprStatement | printStatement;
+exprStatement  → expression ";";
+printStatement → "print" expression ";";
 expression     → block ;
 block          → ternary ("," ternary)* ;
 ternary        → equality ("?" ternary ":" ternary)?;
