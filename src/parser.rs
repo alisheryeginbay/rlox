@@ -3,6 +3,7 @@ use std::{error::Error, fmt::Display};
 use crate::{
     expr::Expr,
     primary_expr::PrimaryExprValue,
+    stmt::Stmt,
     token::{Token, TokenType},
 };
 
@@ -42,10 +43,47 @@ impl Parser {
         });
     }
 
-    pub fn parse(&mut self) -> Result<Expr, Vec<ParseError>> {
-        self.expression().or_else(|err| {
-            self.errors.push(err);
-            Err(self.errors.clone())
+    pub fn parse(&mut self) -> Result<Vec<Stmt>, Vec<ParseError>> {
+        let mut statements: Vec<Stmt> = vec![];
+        while !self.is_at_end() {
+            match self.statement() {
+                Ok(stmt) => {
+                    statements.push(stmt);
+                }
+                Err(err) => {
+                    self.errors.push(err);
+                    self.synchronize();
+                }
+            }
+        }
+        if self.errors.len() != 0 {
+            return Err(self.errors.clone());
+        }
+
+        Ok(statements)
+    }
+
+    fn statement(&mut self) -> Result<Stmt, ParseError> {
+        if self.matches(&[TokenType::Print]) {
+            return self.print_statement();
+        }
+
+        self.expr_statement()
+    }
+
+    fn expr_statement(&mut self) -> Result<Stmt, ParseError> {
+        let expr = self.expression()?;
+        self.consume_if(TokenType::Semicolon)?;
+        Ok(Stmt::Expression {
+            expression: Box::new(expr),
+        })
+    }
+
+    fn print_statement(&mut self) -> Result<Stmt, ParseError> {
+        let expr = self.expression()?;
+        self.consume_if(TokenType::Semicolon)?;
+        Ok(Stmt::Print {
+            expression: Box::new(expr),
         })
     }
 

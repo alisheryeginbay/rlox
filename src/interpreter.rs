@@ -2,6 +2,7 @@ use std::{error::Error, fmt::Display};
 
 use crate::{
     expr::Expr,
+    stmt::Stmt,
     token::{Literal, TokenType},
 };
 
@@ -26,9 +27,10 @@ impl Interpreter {
         Interpreter
     }
 
-    pub fn interpret(&self, expr: Expr) -> Result<(), RuntimeError> {
-        let value = self.evaluate(&expr)?;
-        println!("{}", self.stringify(&value));
+    pub fn interpret(&self, statements: Vec<Stmt>) -> Result<(), RuntimeError> {
+        for statement in statements {
+            self.execute(&statement)?;
+        }
         Ok(())
     }
 
@@ -42,6 +44,20 @@ impl Interpreter {
             Literal::Boolean(value) => *value,
             Literal::String(_) => true,
             Literal::Nil => false,
+        }
+    }
+
+    fn execute(&self, stmt: &Stmt) -> Result<(), RuntimeError> {
+        match stmt {
+            Stmt::Expression { expression } => {
+                let value = self.evaluate(expression)?;
+                Ok(())
+            }
+            Stmt::Print { expression } => {
+                let value = self.evaluate(expression)?;
+                println!("{}", self.stringify(&value));
+                Ok(())
+            }
         }
     }
 

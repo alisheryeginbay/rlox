@@ -39,9 +39,6 @@ impl Rlox {
             .parse()
             .map_err(|errors| errors.into_iter().map(RloxError::Parse).collect::<Vec<_>>())?;
 
-        let ast_printer = AstPrinter;
-        println!("{}", ast_printer.print(&expr));
-
         let interpreter = Interpreter::new();
         interpreter
             .interpret(expr)
