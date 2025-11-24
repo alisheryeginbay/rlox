@@ -2,41 +2,33 @@ use std::collections::HashMap;
 use std::fs::File;
 use std::io::Write;
 
-fn main() {
-    let mut expressions = HashMap::new();
-    expressions.insert(
-        "Binary",
-        "left: Box<Expr>, operator: Token, right: Box<Expr>",
-    );
-    expressions.insert("Grouping", "expression: Box<Expr>");
-    expressions.insert("Literal", "value: Literal");
-    expressions.insert("Unary", "operator: Token, right: Box<Expr>");
-    expressions.insert(
-        "Ternary",
-        "condition: Box<Expr>, positive: Box<Expr>, negative: Box<Expr>",
-    );
+fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let expressions = HashMap::from([
+        (
+            "Binary",
+            "left: Box<Expr>, operator: Token, right: Box<Expr>",
+        ),
+        ("Grouping", "expression: Box<Expr>"),
+        ("Literal", "value: Literal"),
+        ("Unary", "operator: Token, right: Box<Expr>"),
+        (
+            "Ternary",
+            "condition: Box<Expr>, positive: Box<Expr>, negative: Box<Expr>",
+        ),
+    ]);
 
-    let mut statements = HashMap::new();
-    statements.insert("Expression", "expression: Box<Expr>");
-    statements.insert("Print", "expression: Box<Expr>");
+    let statements = HashMap::from([
+        ("Expression", "expression: Box<Expr>"),
+        ("Print", "expression: Box<Expr>"),
+    ]);
 
-    match define_ast("Expr", expressions) {
-        Ok(()) => {
-            println!("Generated Expr enum");
-        }
-        Err(err) => {
-            eprintln!("Failed to generate Expr enum: {}", err);
-        }
-    }
+    define_ast("Expr", expressions)?;
+    println!("Generated Expr enum");
 
-    match define_ast("Stmt", statements) {
-        Ok(()) => {
-            println!("Generated Stmt enum");
-        }
-        Err(err) => {
-            eprintln!("Failed to generate Stmt enum: {}", err);
-        }
-    }
+    define_ast("Stmt", statements)?;
+    println!("Generated Stmt enum");
+
+    Ok(())
 }
 
 const IMPORTS: &[&str] = &["token"];
