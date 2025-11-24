@@ -90,6 +90,16 @@ impl Interpreter {
                         TokenType::Plus => Literal::Number(l + r),
                         TokenType::Minus => Literal::Number(l - r),
                         TokenType::Star => Literal::Number(l * r),
+                        TokenType::Slash => {
+                            if r == 0.0 {
+                                return Err(RuntimeError {
+                                    line: operator.line,
+                                    message: "Can not divide by zero".to_string(),
+                                });
+                            }
+
+                            Literal::Number(l / r)
+                        }
 
                         _ => {
                             return Err(RuntimeError {
