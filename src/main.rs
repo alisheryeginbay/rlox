@@ -13,6 +13,7 @@ mod parser;
 mod primary_expr;
 mod rlox;
 mod scanner;
+mod stmt;
 mod token;
 
 fn get_source_code(filename: &str) -> Result<String, io::Error> {
