@@ -10,6 +10,7 @@ mod ast_printer;
 mod expr;
 mod interpreter;
 mod parser;
+mod primary_expr;
 mod rlox;
 mod scanner;
 mod token;

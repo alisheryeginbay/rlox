@@ -11,6 +11,10 @@ fn main() {
     expressions.insert("Grouping", "expression: Box<Expr>");
     expressions.insert("Literal", "value: Literal");
     expressions.insert("Unary", "operator: Token, right: Box<Expr>");
+    expressions.insert(
+        "Ternary",
+        "condition: Box<Expr>, positive: Box<Expr>, negative: Box<Expr>",
+    );
 
     match define_ast("Expr", expressions) {
         Ok(()) => {
