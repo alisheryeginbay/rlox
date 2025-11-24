@@ -16,12 +16,25 @@ fn main() {
         "condition: Box<Expr>, positive: Box<Expr>, negative: Box<Expr>",
     );
 
+    let mut statements = HashMap::new();
+    statements.insert("Expression", "expression: Box<Expr>");
+    statements.insert("Print", "expression: Box<Expr>");
+
     match define_ast("Expr", expressions) {
         Ok(()) => {
             println!("Generated Expr enum");
         }
         Err(err) => {
             eprintln!("Failed to generate Expr enum: {}", err);
+        }
+    }
+
+    match define_ast("Stmt", statements) {
+        Ok(()) => {
+            println!("Generated Stmt enum");
+        }
+        Err(err) => {
+            eprintln!("Failed to generate Stmt enum: {}", err);
         }
     }
 }

@@ -1,6 +1,12 @@
 use crate::token::*;
 
 pub enum Expr {
+	Literal {
+		value: Literal,
+	},
+	Grouping {
+		expression: Box<Expr>,
+	},
 	Ternary {
 		condition: Box<Expr>,
 		positive: Box<Expr>,
@@ -14,12 +20,6 @@ pub enum Expr {
 	Unary {
 		operator: Token,
 		right: Box<Expr>,
-	},
-	Literal {
-		value: Literal,
-	},
-	Grouping {
-		expression: Box<Expr>,
 	},
 }
 
