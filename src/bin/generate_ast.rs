@@ -49,7 +49,7 @@ fn define_type(
 }
 
 fn define_ast(base_name: &str, expressions: HashMap<&str, &str>) -> Result<(), std::io::Error> {
-    let output_path = format!("src/{}.rs", base_name);
+    let output_path = format!("src/{}.rs", base_name.to_lowercase());
     let mut file = File::create(output_path)?;
 
     for import in IMPORTS {
